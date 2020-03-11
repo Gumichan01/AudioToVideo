@@ -1,7 +1,7 @@
 # creates a youtube video with a still image
 if [ -z "$1" ] && [ -z "$2" ] && [ -z "$3" ] && [ -z "$4" ]; then
     echo Syntax:
-    echo "AudioToVideo.sh /path/to/image.jpg /path/to/audio.mp3 \"artist name\" \"Track Title\""
+    echo `basename $0`" /path/to/image.jpg /path/to/audio.mp3 \"artist name\" \"Track Title\""
 else
     # generate text image for video
     #convert -gravity southeast -splice 40x40  -gravity northwest -splice 40x40 -font Helvetica -gravity Center -weight 700 -pointsize 100 pango:"<b>$3</b>\n$4" image-text.png
