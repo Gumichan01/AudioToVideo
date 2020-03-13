@@ -3,27 +3,33 @@
 # Create a slideshow or still image video for YouTube from an audio file,
 # image and text input with a waveform animation.
 
-# TODO Extract Artist and Title from audio file instead of specify it, unless there is nothing in the file.
-# Specify the colours of the waveform
+# TODO add options: --artist, --title, --waves
+# TODO Specify the colours of the waveform
 
 # Configuration
 FFMPEG_EXE=ffmpeg
+TMP_METADATA_FILE=/tmp/$(echo ${$})-metadata.txt
 
 IMAGE_FILE=$1
 AUDIO_FILE=$2
-ARTIST=$3
-TITLE=$4
 
 IMG_TEXT=image-text.png
-COVER_HD=${ARTIST}-${TITLE}-cover-hd.png
-COVER_SND=${ARTIST}-${TITLE}-cover-snd.png
 VIDEO_IMG=video-img.png
-VIDEO_FILE=${ARTIST}-${TITLE}-video.mkv
 
-if [ -z "$IMAGE_FILE" ] && [ -z "$AUDIO_FILE" ] && [ -z "$ARTIST" ] && [ -z "$TITLE" ]; then
+if [ -z "$IMAGE_FILE" ] && [ -z "$AUDIO_FILE" ]; then
     echo Syntax:
-    echo `basename $0`" /path/to/image.jpg /path/to/audio_file \"artist name\" \"Track Title\""
+    echo `basename $0`" /path/to/image.[png|jpg] /path/to/audio_file.[flac|mp3|wav|ogg]"
 else
+    # Handle missing metadata
+    ffmpeg -i $AUDIO_FILE -f ffmetadata $TMP_METADATA_FILE && \
+    ARTIST_TITLE=`cat $TMP_METADATA_FILE | tr a-z A-Z | egrep "ARTIST|TITLE" | cut -d '=' -f2` && \
+    ARTIST=`echo $ARTIST_TITLE | cut -d ' ' -f1` && \
+    TITLE=`echo $ARTIST_TITLE | cut -d ' ' -f2` && \
+    COVER_HD=${ARTIST}-${TITLE}-cover-hd.png && \
+    COVER_SND=${ARTIST}-${TITLE}-cover-snd.png && \
+    VIDEO_FILE=${ARTIST}-${TITLE}-video.mkv && \
+    rm -v $TMP_METADATA_FILE
+
     # generate text image for video
     convert -gravity southeast -splice 40x40 -gravity northwest -splice 40x40 \
     -font Helvetica-Bold -gravity Center -weight 700 -pointsize 100 caption:"$ARTIST\n$TITLE" $IMG_TEXT
@@ -36,10 +42,10 @@ else
     #convert image to square for SoundCloud and Insta
     convert -gravity Center -resize 1080x1080^ -extent 1080x1080 $VIDEO_IMG $COVER_SND && \
     echo "$COVER_SND generated"
-    # genreate eq video
-    time $FFMPEG_EXE -i "$2" -loop 1 -i $VIDEO_IMG \
-    -filter_complex "[0:a]showwaves=s=1920x200:mode=cline:colors=0xFFFFFF|0xD3D3D3:scale=sqrt[fg];[1:v]scale=1920:-1[bg];[bg][fg]overlay=shortest=1:850:format=auto,format=yuv420p[out]" \
-    -map "[out]" -map 0:a -pix_fmt yuv420p -c:v libx264 -preset fast -crf 18 -c:a copy -shortest $VIDEO_FILE && \
-    echo "$VIDEO_FILE generated"
+    # generate eq video
+    #time $FFMPEG_EXE -i "$2" -loop 1 -i $VIDEO_IMG \
+    #-filter_complex "[0:a]showwaves=s=1920x200:mode=cline:colors=0xFFFFFF|0xD3D3D3:scale=sqrt[fg];[1:v]scale=1920:-1[bg];[bg][fg]overlay=shortest=1:850:format=auto,format=yuv420p[out]" \
+    #-map "[out]" -map 0:a -pix_fmt yuv420p -c:v libx264 -preset fast -crf 18 -c:a copy -shortest $VIDEO_FILE && \
+    #echo "$VIDEO_FILE generated"
     rm -v $IMG_TEXT $VIDEO_IMG
 fi
