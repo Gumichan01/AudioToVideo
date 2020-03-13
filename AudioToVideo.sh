@@ -3,13 +3,13 @@
 # Create a slideshow or still image video for YouTube from an audio file,
 # image and text input with a waveform animation.
 
-# TODO BY default display artist and title
-# TODO Set option to display title only
-# TODO Extract Artist and Title from audio file instead of specify it, unless there is nothing in the file
+# TODO Extract Artist and Title from audio file instead of specify it, unless there is nothing in the file.
+# I have to use rtags (check libtags++)
+# Specify the colours of the waveform
 
 # Assuming this program is running on a POSIX platform
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
-    FFMPEG_EXE=ffmpeg.sh
+    FFMPEG_EXE=ffmpeg
 elif [[ "$OSTYPE" == "darwin*" ]]; then
     FFMPEG_EXE=/Applications/ffmpeg     # Is that really necessary?
 else
@@ -23,10 +23,10 @@ ARTIST=$3
 TITLE=$4
 
 IMG_TEXT=image-text.png
-COVER_HD="$ARTIST"-"$TITLE"-cover-hd.png
-COVER_SND="$ARTIST"-"$TITLE"-cover-snd.png
+COVER_HD=${ARTIST}-${TITLE}-cover-hd.png
+COVER_SND=${ARTIST}-${TITLE}-cover-snd.png
 VIDEO_IMG=video-img.png
-VIDEO_FILE="$ARTIST"-"$TITLE"-video.mkv
+VIDEO_FILE=${ARTIST}-${TITLE}-video.mkv
 
 if [ -z "$IMAGE_FILE" ] && [ -z "$AUDIO_FILE" ] && [ -z "$ARTIST" ] && [ -z "$TITLE" ]; then
     echo Syntax:
