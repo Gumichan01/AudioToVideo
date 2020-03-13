@@ -4,18 +4,10 @@
 # image and text input with a waveform animation.
 
 # TODO Extract Artist and Title from audio file instead of specify it, unless there is nothing in the file.
-# I have to use rtags (check libtags++)
 # Specify the colours of the waveform
 
-# Assuming this program is running on a POSIX platform
-if [[ "$OSTYPE" == "linux-gnu" ]]; then
-    FFMPEG_EXE=ffmpeg
-elif [[ "$OSTYPE" == "darwin*" ]]; then
-    FFMPEG_EXE=/Applications/ffmpeg     # Is that really necessary?
-else
-    echo "Invalid OS - It must be a POSIX platform (Linux, Mac)"
-    exit 1
-fi
+# Configuration
+FFMPEG_EXE=ffmpeg
 
 IMAGE_FILE=$1
 AUDIO_FILE=$2
