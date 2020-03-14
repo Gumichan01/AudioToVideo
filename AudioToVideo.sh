@@ -7,29 +7,38 @@
 # TODO Specify the colours of the waveform
 
 # Configuration
-FFMPEG_EXE=ffmpeg
+FFMPEG_EXE=ffmpeg.sh
 TMP_METADATA_FILE=/tmp/$(echo ${$})-metadata.txt
 
 IMAGE_FILE=$1
 AUDIO_FILE=$2
+ARTIST=
+TITLE=
 
 IMG_TEXT=image-text.png
 VIDEO_IMG=video-img.png
+COVER_HD=
+COVER_SND=
+VIDEO_FILE=
 
-if [ -z "$IMAGE_FILE" ] && [ -z "$AUDIO_FILE" ]; then
-    echo Syntax:
-    echo `basename $0`" /path/to/image.[png|jpg] /path/to/audio_file.[flac|mp3|wav|ogg]"
-else
+extract_metadata () {
     # Handle missing metadata
     ffmpeg -i $AUDIO_FILE -f ffmetadata $TMP_METADATA_FILE && \
-    ARTIST_TITLE=`cat $TMP_METADATA_FILE | tr a-z A-Z | egrep "ARTIST|TITLE" | cut -d '=' -f2` && \
+    local ARTIST_TITLE=`cat $TMP_METADATA_FILE | tr a-z A-Z | egrep "ARTIST|TITLE" | cut -d '=' -f2` && \
     ARTIST=`echo $ARTIST_TITLE | cut -d ' ' -f1` && \
     TITLE=`echo $ARTIST_TITLE | cut -d ' ' -f2` && \
     COVER_HD=${ARTIST}-${TITLE}-cover-hd.png && \
     COVER_SND=${ARTIST}-${TITLE}-cover-snd.png && \
     VIDEO_FILE=${ARTIST}-${TITLE}-video.mkv && \
-    rm -v $TMP_METADATA_FILE
+    rm -f $TMP_METADATA_FILE && \
+    return 0 || return 1
+}
 
+if [ -z "$IMAGE_FILE" ] && [ -z "$AUDIO_FILE" ]; then
+    echo Syntax:
+    echo `basename $0`" /path/to/image.[png|jpg] /path/to/audio_file.[flac|mp3|wav|ogg]"
+else
+    extract_metadata
     # generate text image for video
     convert -gravity southeast -splice 40x40 -gravity northwest -splice 40x40 \
     -font Helvetica-Bold -gravity Center -weight 700 -pointsize 100 caption:"$ARTIST\n$TITLE" $IMG_TEXT
