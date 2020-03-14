@@ -24,14 +24,19 @@ VIDEO_FILE=
 
 extract_metadata () {
     # Handle missing metadata
-    ffmpeg -i $AUDIO_FILE -f ffmetadata $TMP_METADATA_FILE && \
-    local ARTIST_TITLE=`cat $TMP_METADATA_FILE | tr a-z A-Z | egrep "ARTIST|TITLE" | cut -d '=' -f2` && \
-    ARTIST=`echo $ARTIST_TITLE | cut -d ' ' -f1` && \
-    TITLE=`echo $ARTIST_TITLE | cut -d ' ' -f2` && \
-    COVER_HD=${ARTIST}-${TITLE}-cover-hd.png && \
-    COVER_SND=${ARTIST}-${TITLE}-cover-snd.png && \
-    VIDEO_FILE=${ARTIST}-${TITLE}-video.mkv && \
-    return 0 || return 1
+    ffmpeg -i $AUDIO_FILE -f ffmetadata $TMP_METADATA_FILE
+    ARTIST=`cat $TMP_METADATA_FILE | tr a-z A-Z | egrep "ARTIST" | cut -d '=' -f2`
+    TITLE=`cat $TMP_METADATA_FILE | tr a-z A-Z | egrep "TITLE" | cut -d '=' -f2`
+
+    if [ -z "$ARTIST" ] || [ -z "$TITLE" ]; then
+        echo -e "A metadata field is missing in \"$AUDIO_FILE\": artist or title" 1>&2
+        return 1
+    else
+        COVER_HD=${ARTIST}-${TITLE}-cover-hd.png
+        COVER_SND=${ARTIST}-${TITLE}-cover-snd.png
+        VIDEO_FILE=${ARTIST}-${TITLE}-video.mkv
+        return 0
+    fi
 }
 
 generate_full_hd_text_image_for_video () {
@@ -74,8 +79,8 @@ audeo () {
     return $AUDEO_RESULT
 }
 
-if [ -z "$IMAGE_FILE" ] && [ -z "$AUDIO_FILE" ]; then
-    echo Syntax:
+if [ -z "$IMAGE_FILE" ] || [ -z "$AUDIO_FILE" ]; then
+    echo "Syntax:"
     echo `basename $0`" /path/to/image.[png|jpg] /path/to/audio_file.[flac|mp3|wav|ogg]"
 else
     audeo
