@@ -3,8 +3,6 @@
 # Create a slideshow or still image video for YouTube from an audio file,
 # image and text input with a waveform animation.
 
-# TODO Specify the colours of the waveform
-
 # Configuration
 FFMPEG_EXE=ffmpeg
 TMP_METADATA_FILE=/tmp/$(echo ${$})-metadata.txt
@@ -13,6 +11,7 @@ EXIT_FAILURE=1
 
 IMAGE_FILE=$1
 AUDIO_FILE=$2
+COLOUR=$3
 ARTIST=
 TITLE=
 
@@ -64,8 +63,14 @@ convert_hd_image_for_soundcloud_cover () {
 }
 
 generate_video () {
+
+    local WAVE_COLOUR=0xFFFFFF
+    if [ -n "$COLOUR" ]; then
+        WAVE_COLOUR=$COLOUR
+    fi
+
     $FFMPEG_EXE -i "$AUDIO_FILE" -loop 1 -i $VIDEO_IMG \
-    -filter_complex "[0:a]showwaves=s=1920x200:mode=cline:colors=0xFFFFFF|0xD3D3D3:scale=sqrt[fg];[1:v]scale=1920:-1[bg];[bg][fg]overlay=shortest=1:850:format=auto,format=yuv420p[out]" \
+    -filter_complex "[0:a]showwaves=s=1920x200:mode=cline:colors=${WAVE_COLOUR}:scale=sqrt[fg];[1:v]scale=1920:-1[bg];[bg][fg]overlay=shortest=1:850:format=auto,format=yuv420p[out]" \
     -map "[out]" -map 0:a -pix_fmt yuv420p -c:v libx264 -preset fast -crf 18 -c:a copy -shortest $VIDEO_FILE && \
     echo "$VIDEO_FILE generated" && \
     return $EXIT_SUCCESS || return $EXIT_FAILURE
@@ -86,7 +91,8 @@ audeo () {
 
 if [ -z "$IMAGE_FILE" ] || [ -z "$AUDIO_FILE" ]; then
     echo "Syntax:"
-    echo `basename $0`" /path/to/image.[png|jpg] /path/to/audio_file.[flac|mp3|wav|ogg]"
+    echo `basename $0`" /path/to/image.[png|jpg] /path/to/audio_file.[flac|mp3|wav|ogg] [colour]"
+    echo "--- The colour can be a word or an hexadecimal value "
 else
     audeo
 fi
