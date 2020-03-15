@@ -24,8 +24,8 @@ VIDEO_FILE=
 extract_metadata () {
     # Handle missing metadata
     ffmpeg -i $AUDIO_FILE -f ffmetadata $TMP_METADATA_FILE
-    ARTIST=`cat $TMP_METADATA_FILE | tr a-z A-Z | egrep "ARTIST" | cut -d '=' -f2`
-    TITLE=`cat $TMP_METADATA_FILE | tr a-z A-Z | egrep "TITLE" | cut -d '=' -f2`
+    ARTIST=`cat $TMP_METADATA_FILE | tr a-z A-Z | tr ' ' '_' | egrep "ARTIST" | cut -d '=' -f2`
+    TITLE=`cat $TMP_METADATA_FILE | tr a-z A-Z | tr ' ' '_' | egrep "TITLE" | cut -d '=' -f2`
 
     if [ -z "$ARTIST" ] || [ -z "$TITLE" ]; then
         echo -e "A metadata field is missing in \"$AUDIO_FILE\": artist or title" 1>&2
